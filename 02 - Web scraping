@@ -1,0 +1,65 @@
+# Importar las bibliotecas necesarias
+import pandas as pd
+import numpy as np
+
+# Cargar el conjunto de datos de Space X
+df = pd.read_csv("https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-DS0321EN-SkillsNetwork/datasets/dataset_part_1.csv")
+
+# Mostrar las primeras 10 filas del DataFrame
+print("Primeras 10 filas del conjunto de datos:")
+print(df.head(10))
+
+# Identificar y calcular el porcentaje de valores faltantes en cada atributo
+missing_percentage = df.isnull().sum() / len(df) * 100
+print("\nPorcentaje de valores faltantes en cada atributo:")
+print(missing_percentage)
+
+# Identificar qué columnas son numéricas y cuáles son categóricas
+print("\nTipos de datos de cada columna:")
+print(df.dtypes)
+
+# TAREA 1: Calcular el número de lanzamientos en cada sitio
+launches_per_site = df['LaunchSite'].value_counts()
+print("\nNúmero de lanzamientos por sitio:")
+print(launches_per_site)
+
+# TAREA 2: Calcular el número y la ocurrencia de cada órbita
+orbit_counts = df['Orbit'].value_counts()
+print("\nNúmero y ocurrencia de cada órbita:")
+print(orbit_counts)
+
+# TAREA 3: Calcular el número y ocurrencia de los resultados de las misiones
+landing_outcomes = df['Outcome'].value_counts()
+print("\nNúmero y ocurrencia de cada resultado de la misión:")
+print(landing_outcomes)
+
+# Enumerar los resultados de los aterrizajes para mostrar el índice y el resultado
+print("\nÍndice y valores de resultados:")
+for i, outcome in enumerate(landing_outcomes.keys()):
+    print(i, outcome)
+
+# Crear un conjunto de resultados donde la segunda etapa no aterrizó con éxito
+bad_outcomes = set(landing_outcomes.keys()[[1, 3, 5, 6, 7]])
+print("\nResultados negativos (aterrizajes no exitosos):")
+print(bad_outcomes)
+
+# TAREA 4: Crear una etiqueta de resultado de aterrizaje a partir de la columna de resultados
+landing_class = [0 if outcome in bad_outcomes else 1 for outcome in df['Outcome']]
+
+# Agregar la etiqueta de resultado de aterrizaje al DataFrame
+df['Class'] = landing_class
+
+print("\nPrimeras 8 filas de la columna 'Class':")
+print(df[['Class']].head(8))
+
+print("\nPrimeras 5 filas del conjunto de datos actualizado:")
+print(df.head(5))
+
+# Determinar la tasa de éxito
+success_rate = df["Class"].mean()
+print("\nTasa de éxito de los aterrizajes:")
+print(success_rate)
+
+# Exportar el DataFrame a un archivo CSV
+df.to_csv("dataset_part_2.csv", index=False)
+print("\nDatos exportados a 'dataset_part_2.csv'")
