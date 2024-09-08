@@ -1,0 +1,77 @@
+# Instalar las librerías necesarias (Ejecuta estos comandos en tu terminal o consola)
+# pip install sqlalchemy==1.3.9
+# pip install pandas
+# pip install ipython-sql
+
+# Importar las bibliotecas necesarias
+import pandas as pd
+import sqlite3
+
+# Establecer la conexión a la base de datos SQLite
+con = sqlite3.connect("my_data1.db")
+cur = con.cursor()
+
+# Cargar el dataset en un DataFrame de pandas
+df = pd.read_csv("https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-DS0321EN-SkillsNetwork/labs/module_2/data/Spacex.csv")
+
+# Guardar el DataFrame en la base de datos
+df.to_sql("SPACEXTBL", con, if_exists='replace', index=False, method="multi")
+
+# Eliminar filas vacías en la tabla
+cur.execute("DROP TABLE IF EXISTS SPACEXTABLE;")
+cur.execute("CREATE TABLE SPACEXTABLE AS SELECT * FROM SPACEXTBL WHERE Date IS NOT NULL;")
+
+# Consultas SQL para resolver las tareas
+
+# Task 1
+print("Task 1: Unique Launch Sites")
+for row in cur.execute('''SELECT DISTINCT "Launch_Site" FROM SPACEXTABLE;'''):
+    print(row)
+
+# Task 2
+print("\nTask 2: Launch Sites starting with 'CCA'")
+for row in cur.execute('''SELECT * FROM SPACEXTABLE WHERE "Launch_Site" LIKE 'CCA%' LIMIT 5;'''):
+    print(row)
+
+# Task 3
+print("\nTask 3: Total Payload Mass by NASA (CRS) Boosters")
+cur.execute('''SELECT SUM("PAYLOAD_MASS__KG_") AS Total_Payload_Mass FROM SPACEXTABLE WHERE "Mission_Outcome" LIKE 'NASA (CRS)%';''')
+print(cur.fetchone())
+
+# Task 4
+print("\nTask 4: Average Payload Mass for Booster Version F9 v1.1")
+cur.execute('''SELECT AVG("PAYLOAD_MASS__KG_") AS Average_Payload_Mass FROM SPACEXTABLE WHERE "Booster_Version" = 'F9 v1.1';''')
+print(cur.fetchone())
+
+# Task 5
+print("\nTask 5: Date of First Successful Landing on Ground Pad")
+cur.execute('''SELECT MIN(Date) AS First_Successful_Landing FROM SPACEXTABLE WHERE "Landing_Outcome" = 'Success (ground pad)';''')
+print(cur.fetchone())
+
+# Task 6
+print("\nTask 6: Boosters with Success on Drone Ship and Payload Mass Between 4000 and 6000")
+for row in cur.execute('''SELECT "Booster_Version" FROM SPACEXTABLE WHERE "Landing_Outcome" = 'Success (drone ship)' AND "PAYLOAD_MASS__KG_" > 4000 AND "PAYLOAD_MASS__KG_" < 6000;'''):
+    print(row)
+
+# Task 7
+print("\nTask 7: Total Number of Successful and Failed Mission Outcomes")
+for row in cur.execute('''SELECT "Mission_Outcome", COUNT(*) AS Outcome_Count FROM SPACEXTABLE GROUP BY "Mission_Outcome";'''):
+    print(row)
+
+# Task 8
+print("\nTask 8: Booster Versions with Maximum Payload Mass")
+for row in cur.execute('''SELECT "Booster_Version" FROM SPACEXTABLE WHERE "PAYLOAD_MASS__KG_" = (SELECT MAX("PAYLOAD_MASS__KG_") FROM SPACEXTABLE);'''):
+    print(row)
+
+# Task 9
+print("\nTask 9: Failure Landing Outcomes on Drone Ship in 2015")
+for row in cur.execute('''SELECT substr(Date, 6, 2) AS Month, "Landing_Outcome", "Booster_Version", "Launch_Site" FROM SPACEXTABLE WHERE substr(Date, 1, 4) = '2015' AND "Landing_Outcome" = 'Failure (drone ship)';'''):
+    print(row)
+
+# Task 10
+print("\nTask 10: Ranking of Landing Outcomes between 2010-06-04 and 2017-03-20")
+for row in cur.execute('''SELECT "Landing_Outcome", COUNT(*) AS Outcome_Count FROM SPACEXTABLE WHERE Date BETWEEN '2010-06-04' AND '2017-03-20' GROUP BY "Landing_Outcome" ORDER BY Outcome_Count DESC;'''):
+    print(row)
+
+# Cerrar la conexión a la base de datos
+con.close()
