@@ -1,0 +1,62 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Cargar los datos desde la URL
+url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-DS0321EN-SkillsNetwork/datasets/dataset_part_2.csv"
+df = pd.read_csv(url)
+
+# Mostrar las primeras filas del dataframe
+print(df.head(5))
+
+# TAREA 1: Visualizar la relación entre el número de vuelos y el sitio de lanzamiento
+sns.catplot(y="LaunchSite", x="FlightNumber", hue="Class", data=df, aspect=5)
+plt.xlabel("Número de Vuelo", fontsize=20)
+plt.ylabel("Sitio de Lanzamiento", fontsize=20)
+plt.show()
+
+# TAREA 2: Visualizar la relación entre la masa de la carga útil y el sitio de lanzamiento
+sns.catplot(y="LaunchSite", x="PayloadMass", hue="Class", data=df, aspect=5)
+plt.xlabel("Masa de la Carga Útil (kg)", fontsize=20)
+plt.ylabel("Sitio de Lanzamiento", fontsize=20)
+plt.show()
+
+# TAREA 3: Visualizar la tasa de éxito de cada tipo de órbita
+orbit_success = df.groupby('Orbit')['Class'].mean().reset_index()
+sns.barplot(x='Orbit', y='Class', data=orbit_success)
+plt.xlabel("Tipo de Órbita", fontsize=20)
+plt.ylabel("Tasa de Éxito", fontsize=20)
+plt.show()
+
+# TAREA 4: Visualizar la relación entre el número de vuelos y el tipo de órbita
+sns.catplot(y="Orbit", x="FlightNumber", hue="Class", data=df, aspect=5)
+plt.xlabel("Número de Vuelo", fontsize=20)
+plt.ylabel("Órbita", fontsize=20)
+plt.show()
+
+# TAREA 5: Visualizar la relación entre la masa de la carga útil y el tipo de órbita
+sns.catplot(y="Orbit", x="PayloadMass", hue="Class", data=df, aspect=5)
+plt.xlabel("Masa de la Carga Útil (kg)", fontsize=20)
+plt.ylabel("Órbita", fontsize=20)
+plt.show()
+
+# TAREA 6: Visualizar la tendencia de éxito de lanzamiento por año
+df['Year'] = pd.DatetimeIndex(df['Date']).year
+yearly_success = df.groupby('Year')['Class'].mean().reset_index()
+
+plt.plot(yearly_success['Year'], yearly_success['Class'], marker='o')
+plt.xlabel("Año", fontsize=20)
+plt.ylabel("Tasa de Éxito", fontsize=20)
+plt.show()
+
+# Ingeniería de Características
+features = df[['FlightNumber', 'PayloadMass', 'Orbit', 'LaunchSite', 'Flights', 'GridFins', 'Reused', 'Legs', 'LandingPad', 'Block', 'ReusedCount', 'Serial']]
+features_one_hot = pd.get_dummies(features, columns=['Orbit', 'LaunchSite', 'LandingPad', 'Serial'])
+features_one_hot = features_one_hot.astype('float64')
+
+# Mostrar las primeras filas del dataframe de características
+print(features_one_hot.head())
+
+# Exportar el conjunto de datos procesado a CSV
+features_one_hot.to_csv('dataset_part_3.csv', index=False)
